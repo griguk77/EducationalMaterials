@@ -1,5 +1,7 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
+import { useTestSessionLeave } from '../../contexts/TestSessionLeaveContext'
+import { useLogoutConfirm } from '../../contexts/LogoutConfirmContext'
 import type { UserRole } from '../../types/auth'
 
 type NavItem = { to: string; label: string }
@@ -33,7 +35,35 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function AppShell() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const {
+    confirmLeaveIfNeeded,
+    confirmLogoutPreflightIfNeeded,
+    abandonIfActiveAndThen,
+  } = useTestSessionLeave()
+  const { confirmLogout } = useLogoutConfirm()
   const nav = navForRole(user!.role)
+
+  function handleLogout() {
+    if (user!.role !== 'student') {
+      confirmLogout(() => {
+        logout()
+        navigate('/login', { replace: true })
+      })
+      return
+    }
+    // 1) То же окно, что «Завершить тест» — без abandon; по «Да» → окно выхода.
+    // 2) По «Да» в окне выхода — abandon + logout.
+    confirmLogoutPreflightIfNeeded(() => {
+      confirmLogout(() => {
+        abandonIfActiveAndThen(() => {
+          logout()
+          navigate('/login', { replace: true })
+        })
+      })
+    })
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -50,7 +80,7 @@ export function AppShell() {
           </div>
           <button
             type="button"
-            onClick={logout}
+            onClick={handleLogout}
             className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Выйти
@@ -61,7 +91,18 @@ export function AppShell() {
           aria-label="Основное меню"
         >
           {nav.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/student' || item.to === '/teacher'} className={navLinkClass}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/student' || item.to === '/teacher'}
+              className={navLinkClass}
+              onClick={(e) => {
+                if (user!.role !== 'student') return
+                if (location.pathname === item.to) return
+                e.preventDefault()
+                confirmLeaveIfNeeded(() => navigate(item.to))
+              }}
+            >
               {item.label}
             </NavLink>
           ))}

@@ -1,7 +1,21 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { loginApi } from '../../api/authApi'
+import { ApiError } from '../../api/client'
 import { useAuth } from '../../auth/AuthContext'
+import type { AuthUser, UserRole } from '../../types/auth'
+
+/** Не возвращаем на экран прохождения теста — после входа как при обычной авторизации. */
+function redirectPathAfterLogin(
+  from: string | undefined,
+  role: UserRole,
+): string {
+  if (from && !from.startsWith('/student/test/')) {
+    return from
+  }
+  return role === 'teacher' ? '/teacher/topics' : '/student'
+}
 
 export function LoginPage() {
   const { token, user, login } = useAuth()
@@ -12,38 +26,47 @@ export function LoginPage() {
 
   const [loginField, setLoginField] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
 
   if (token && user) {
-    return <Navigate to={from || '/'} replace />
+    return (
+      <Navigate to={redirectPathAfterLogin(from, user.role)} replace />
+    )
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    // Заглушка до подключения API: демо-вход по полю логина
-    const role =
-      loginField.toLowerCase().includes('teacher') ||
-      loginField.toLowerCase().includes('prep')
-        ? 'teacher'
-        : 'student'
-    login('demo-jwt-token', {
-      id: '1',
-      name: role === 'teacher' ? 'Преподаватель (демо)' : 'Обучающийся (демо)',
-      role,
-    })
-    navigate(from || (role === 'teacher' ? '/teacher/topics' : '/student/topics'), {
-      replace: true,
-    })
+    setError(null)
+    setPending(true)
+    try {
+      const res = await loginApi(loginField.trim(), password)
+      const authUser: AuthUser = {
+        id: res.user.id,
+        name: res.user.name,
+        role: res.user.role,
+      }
+      login(res.accessToken, authUser)
+      navigate(redirectPathAfterLogin(from, authUser.role), { replace: true })
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : 'Не удалось войти. Проверьте backend и сеть.'
+      setError(msg)
+    } finally {
+      setPending(false)
+    }
   }
 
-  function demoLogin(role: 'student' | 'teacher') {
-    login('demo-jwt-token', {
-      id: role === 'teacher' ? 't1' : 's1',
-      name: role === 'teacher' ? 'Преподаватель (демо)' : 'Обучающийся (демо)',
-      role,
-    })
-    navigate(role === 'teacher' ? '/teacher/topics' : '/student/topics', {
-      replace: true,
-    })
+  function fillDemo(which: 'student' | 'teacher') {
+    if (which === 'student') {
+      setLoginField('student')
+      setPassword('student123')
+    } else {
+      setLoginField('teacher')
+      setPassword('teacher123')
+    }
   }
 
   return (
@@ -53,8 +76,14 @@ export function LoginPage() {
           Вход
         </h1>
         <p className="mt-2 text-center text-sm text-slate-500">
-          JWT будет выдан backend; сейчас — демо-форма.
+          Учётные данные проверяются на сервере; выдаётся JWT.
         </p>
+
+        {error ? (
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+            {error}
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
@@ -72,6 +101,7 @@ export function LoginPage() {
               onChange={(e) => setLoginField(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               placeholder="student или teacher"
+              required
             />
           </div>
           <div>
@@ -90,41 +120,41 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               placeholder="••••••••"
+              required
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+            disabled={pending}
+            className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            Войти
+            {pending ? 'Вход…' : 'Войти'}
           </button>
         </form>
-
-        <p className="mt-4 text-center text-xs text-slate-500">
-          Подсказка: если в логине есть «teacher» или «prep», выдаётся роль
-          преподавателя; иначе — обучающийся.
-        </p>
 
         <div className="mt-6 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => demoLogin('student')}
+            onClick={() => fillDemo('student')}
             className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Демо: учащийся
+            Подставить: учащийся
           </button>
           <button
             type="button"
-            onClick={() => demoLogin('teacher')}
+            onClick={() => fillDemo('teacher')}
             className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
-            Демо: преподаватель
+            Подставить: преподаватель
           </button>
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Нет аккаунта?{' '}
-          <Link to="/register" className="font-medium text-emerald-700 hover:underline">
+          <Link
+            to="/register"
+            className="font-medium text-emerald-700 hover:underline"
+          >
             Регистрация
           </Link>
         </p>

@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  application:
+    name: edumaterials-server
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-change-me-use-at-least-256-bits-for-hs256-algorithm-key-material}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  recommendation:
+    hlow: ${RECOMMENDATION_HLOW:0.45}
+    hhigh: ${RECOMMENDATION_HHIGH:0.75}
+    default-normative-time-ms: ${RECOMMENDATION_DEFAULT_NORMATIVE_TIME_MS:60000}
+
+logging:
+  level:
+    org.springframework.security: INFO

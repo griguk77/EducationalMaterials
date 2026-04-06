@@ -1,20 +1,56 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { registerApi } from '../../api/authApi'
+import { ApiError } from '../../api/client'
 import { useAuth } from '../../auth/AuthContext'
+import type { AuthUser } from '../../types/auth'
 
 export function RegisterPage() {
-  const { token } = useAuth()
-  const [email, setEmail] = useState('')
+  const { token, login } = useAuth()
+  const navigate = useNavigate()
+
+  const [loginField, setLoginField] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [role, setRole] = useState<'STUDENT' | 'TEACHER'>('STUDENT')
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
 
   if (token) {
     return <Navigate to="/" replace />
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    // Заглушка: регистрация появится после API
-    alert('Регистрация будет подключена к backend (JWT).')
+    setError(null)
+    setPending(true)
+    try {
+      const res = await registerApi({
+        login: loginField.trim(),
+        password,
+        name: name.trim(),
+        role,
+      })
+      const authUser: AuthUser = {
+        id: res.user.id,
+        name: res.user.name,
+        role: res.user.role,
+      }
+      login(res.accessToken, authUser)
+      navigate(
+        authUser.role === 'teacher' ? '/teacher/topics' : '/student',
+        { replace: true },
+      )
+    } catch (err) {
+      const msg =
+        err instanceof ApiError
+          ? err.message
+          : 'Не удалось зарегистрироваться.'
+      setError(msg)
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -24,36 +60,103 @@ export function RegisterPage() {
           Регистрация
         </h1>
         <p className="mt-2 text-center text-sm text-slate-500">
-          Форма-заглушка до готовности API.
+          Пароль не короче 8 символов. Роль выбирается явно.
         </p>
+
+        {error ? (
+          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+            {error}
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
             <label
-              htmlFor="email"
+              htmlFor="name"
               className="block text-sm font-medium text-slate-700"
             >
-              Email / логин
+              Имя
             </label>
             <input
-              id="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="name"
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              required
             />
+          </div>
+          <div>
+            <label
+              htmlFor="login"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Логин
+            </label>
+            <input
+              id="login"
+              name="login"
+              autoComplete="username"
+              value={loginField}
+              onChange={(e) => setLoginField(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              required
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Пароль
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={8}
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              required
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Роль
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={role}
+              onChange={(e) =>
+                setRole(e.target.value as 'STUDENT' | 'TEACHER')
+              }
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            >
+              <option value="STUDENT">Обучающийся</option>
+              <option value="TEACHER">Преподаватель</option>
+            </select>
           </div>
           <button
             type="submit"
-            className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+            disabled={pending}
+            className="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
           >
-            Зарегистрироваться
+            {pending ? 'Отправка…' : 'Зарегистрироваться'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Уже есть аккаунт?{' '}
-          <Link to="/login" className="font-medium text-emerald-700 hover:underline">
+          <Link
+            to="/login"
+            className="font-medium text-emerald-700 hover:underline"
+          >
             Войти
           </Link>
         </p>
