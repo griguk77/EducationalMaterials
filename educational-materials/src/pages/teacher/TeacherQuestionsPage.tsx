@@ -12,6 +12,7 @@ import type {
   QuestionTeacherDto,
   TopicDto,
 } from '../../api/types'
+import { answerTypeLabelRu } from '../../utils/answerTypeLabels'
 
 const OPTION_IDS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
@@ -324,7 +325,7 @@ export function TeacherQuestionsPage() {
                   <tr key={q.id} className="border-b border-slate-100 align-top">
                     <td className="px-4 py-3">{q.text}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      {q.answerType}
+                      {answerTypeLabelRu(q.answerType)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -381,9 +382,13 @@ export function TeacherQuestionsPage() {
                       }
                       className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
                     >
-                      <option value="SINGLE">Одиночный выбор</option>
-                      <option value="MULTIPLE">Множественный выбор</option>
-                      <option value="TEXT">Текст</option>
+                      <option value="SINGLE">
+                        {answerTypeLabelRu('SINGLE')}
+                      </option>
+                      <option value="MULTIPLE">
+                        {answerTypeLabelRu('MULTIPLE')}
+                      </option>
+                      <option value="TEXT">{answerTypeLabelRu('TEXT')}</option>
                     </select>
                   </div>
                   <div>

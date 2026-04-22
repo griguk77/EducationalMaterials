@@ -12,6 +12,8 @@ import {
   startTestSession,
   submitAnswer,
 } from '../../api/sessionsApi'
+import { answerTypeLabelRu } from '../../utils/answerTypeLabels'
+import { materialTypeLabelRu } from '../../utils/materialTypeLabels'
 
 function masteryLabelRu(label: string): string {
   switch (label) {
@@ -43,6 +45,7 @@ export function TestFlowPage() {
   const [result, setResult] = useState<CompleteSessionResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [completing, setCompleting] = useState(false)
+  const [questionOrdinal, setQuestionOrdinal] = useState(1)
 
   const [singleChoice, setSingleChoice] = useState<string>('')
   const [multiChoice, setMultiChoice] = useState<Record<string, boolean>>({})
@@ -84,6 +87,7 @@ export function TestFlowPage() {
         const first = start.question
         setCurrentQuestion(first)
         setNoQuestionsInTopic(first == null)
+        setQuestionOrdinal(1)
         questionStartedAt.current = performance.now()
         resetAnswerUi()
       } catch (e) {
@@ -161,7 +165,11 @@ export function TestFlowPage() {
         responseTimeMs,
       })
       resetAnswerUi()
-      setCurrentQuestion(next.nextQuestion ?? null)
+      const upcoming = next.nextQuestion ?? null
+      setCurrentQuestion(upcoming)
+      if (upcoming) {
+        setQuestionOrdinal((n) => n + 1)
+      }
     } catch (e) {
       setError(
         e instanceof ApiError ? e.message : 'Не удалось отправить ответ.',
@@ -249,7 +257,7 @@ export function TestFlowPage() {
               >
                 <p className="font-medium text-slate-900">{m.title}</p>
                 <p className="text-xs text-slate-500">
-                  {m.type} · уровень {m.difficultyLevel}
+                  {materialTypeLabelRu(m.type)} · уровень {m.difficultyLevel}
                 </p>
                 <a
                   href={m.link}
@@ -283,10 +291,11 @@ export function TestFlowPage() {
           <h1 className="mt-4 text-2xl font-semibold text-slate-900">
             Прохождение теста
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Тема ID:{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5">{topicId}</code>
-          </p>
+          {currentQuestion ? (
+            <p className="mt-1 text-sm text-slate-500">
+              Вопрос {questionOrdinal}
+            </p>
+          ) : null}
         </div>
         {sessionId && phase === 'run' ? (
           <button
@@ -335,7 +344,7 @@ export function TestFlowPage() {
         <div className="mt-8 space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <div>
             <p className="text-xs text-slate-500">
-              Вопрос · {currentQuestion.answerType}
+              {answerTypeLabelRu(currentQuestion.answerType)}
               {currentQuestion.normativeTimeMs != null
                 ? ` · нормативное время ~ ${Math.round(currentQuestion.normativeTimeMs / 1000)} с`
                 : null}

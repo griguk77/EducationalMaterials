@@ -81,13 +81,13 @@ export function TeacherTopicsPage() {
     const low = Number(hLow.replace(',', '.'))
     const high = Number(hHigh.replace(',', '.'))
     if (!Number.isFinite(low) || !Number.isFinite(high)) {
-      return { ok: false, message: 'Введите числовые пороги h_low и h_high.' }
+      return { ok: false, message: 'Введите числовые пороги: нижний и верхний.' }
     }
     if (low < 0 || low > 1 || high < 0 || high > 1) {
       return { ok: false, message: 'Пороги должны быть в диапазоне от 0 до 1.' }
     }
     if (low >= high) {
-      return { ok: false, message: 'Порог h_low должен быть строго меньше h_high.' }
+      return { ok: false, message: 'Нижний порог должен быть строго меньше верхнего.' }
     }
     return { ok: true, low, high }
   }
@@ -153,7 +153,7 @@ export function TeacherTopicsPage() {
         </button>
       </div>
       <p className="mt-2 text-slate-600">
-        Для каждой темы задаются пороги M_C: h_low и h_high (по умолчанию {DEFAULT_H_LOW} и{' '}
+        Для каждой темы задаются пороги оценки: нижний и верхний (по умолчанию {DEFAULT_H_LOW} и{' '}
         {DEFAULT_H_HIGH}) — они определяют метки «повторить / закрепить / освоено» и подбор материалов
         после теста.
       </p>
@@ -173,8 +173,8 @@ export function TeacherTopicsPage() {
               <tr>
                 <th className="px-4 py-3 font-medium">Название</th>
                 <th className="px-4 py-3 font-medium">Описание</th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">h_low</th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">h_high</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">Нижний</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">Верхний</th>
                 <th className="px-4 py-3 font-medium w-40" />
               </tr>
             </thead>
@@ -253,7 +253,7 @@ export function TeacherTopicsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">
-                    h_low (0…1)
+                    Нижний (0…1)
                   </label>
                   <input
                     type="text"
@@ -265,7 +265,7 @@ export function TeacherTopicsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">
-                    h_high (0…1)
+                    Верхний (0…1)
                   </label>
                   <input
                     type="text"
@@ -277,8 +277,8 @@ export function TeacherTopicsPage() {
                 </div>
               </div>
               <p className="text-xs text-slate-500">
-                Дефолты при создании: {DEFAULT_H_LOW} и {DEFAULT_H_HIGH}. Должно выполняться: h_low &lt;
-                h_high.
+                Дефолты при создании: {DEFAULT_H_LOW} и {DEFAULT_H_HIGH}. Должно выполняться: нижний &lt;
+                верхний.
               </p>
             </div>
             <div className="mt-6 flex justify-end gap-2">

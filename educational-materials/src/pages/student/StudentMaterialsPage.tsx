@@ -3,6 +3,7 @@ import { ApiError } from '../../api/client'
 import { fetchMaterialsForTopic } from '../../api/materialsApi'
 import { fetchTopics } from '../../api/topicsApi'
 import type { MaterialDto, TopicDto } from '../../api/types'
+import { materialTypeLabelRu } from '../../utils/materialTypeLabels'
 
 type Row = MaterialDto & { topicName: string }
 
@@ -48,7 +49,7 @@ export function StudentMaterialsPage() {
         Учебные материалы
       </h1>
       <p className="mt-2 text-slate-600">
-        Материалы по темам (article / video и др.). Список с сервера.
+        Материалы по темам (статья, видео и др.). Список с сервера.
       </p>
 
       {loading ? (
@@ -69,7 +70,7 @@ export function StudentMaterialsPage() {
               <p className="text-xs text-slate-500">{m.topicName}</p>
               <p className="font-medium text-slate-900">{m.title}</p>
               <p className="text-xs text-slate-500">
-                {m.type} · уровень {m.difficultyLevel}
+                {materialTypeLabelRu(m.type)} · уровень {m.difficultyLevel}
               </p>
               <a
                 href={m.link}

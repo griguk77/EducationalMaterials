@@ -112,11 +112,12 @@ class TestSessionService(
         if (expected.id != request.questionId) {
             throw IllegalArgumentException("Ожидался другой вопрос")
         }
-        val correct = answerEvaluation.isCorrect(expected, request.userAnswer)
-        val ai = if (correct) 1.0 else 0.0
+        val outcome = answerEvaluation.evaluate(expected, request.userAnswer)
+        val ai = outcome.correctnessWeight
         val qid = expected.id
         val totalBefore = answerResultRepository.countByQuestionId(qid)
-        val correctBefore = answerResultRepository.countByQuestionIdAndIsCorrect(qid, true)
+        val correctBefore =
+            answerResultRepository.countByQuestionIdAndIsCorrect(qid, true)
         val timesBefore = answerResultRepository.findResponseTimeMsByQuestionId(qid)
         val partial = MasteryScoring.partialScore(
             question = expected,
@@ -132,7 +133,7 @@ class TestSessionService(
                 testSessionId = session.id,
                 questionId = expected.id,
                 userAnswer = request.userAnswer,
-                isCorrect = correct,
+                isCorrect = outcome.fullyCorrect,
                 score = ai,
                 responseTimeMs = request.responseTimeMs,
                 partialScore = partial,

@@ -8,6 +8,7 @@ import {
 } from '../../api/materialsApi'
 import type { MaterialDto, MaterialType, TopicDto } from '../../api/types'
 import { fetchTopics } from '../../api/topicsApi'
+import { materialTypeLabelRu } from '../../utils/materialTypeLabels'
 
 export function TeacherMaterialsPage() {
   const [topics, setTopics] = useState<TopicDto[]>([])
@@ -206,7 +207,7 @@ export function TeacherMaterialsPage() {
                 materials.map((m) => (
                   <tr key={m.id} className="border-b border-slate-100">
                     <td className="px-4 py-3 font-medium">{m.title}</td>
-                    <td className="px-4 py-3">{m.type}</td>
+                    <td className="px-4 py-3">{materialTypeLabelRu(m.type)}</td>
                     <td className="px-4 py-3">{m.difficultyLevel}</td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -271,10 +272,10 @@ export function TeacherMaterialsPage() {
                     }
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900"
                   >
-                    <option value="ARTICLE">ARTICLE</option>
-                    <option value="VIDEO">VIDEO</option>
-                    <option value="EXTERNAL">EXTERNAL</option>
-                    <option value="DOCUMENT">DOCUMENT</option>
+                    <option value="ARTICLE">Статья</option>
+                    <option value="VIDEO">Видео</option>
+                    <option value="EXTERNAL">Внешняя ссылка</option>
+                    <option value="DOCUMENT">Документ</option>
                   </select>
                 </div>
                 <div>
