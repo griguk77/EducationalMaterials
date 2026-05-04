@@ -8,7 +8,7 @@ export function TeacherHomePage() {
       </h1>
       <p className="mt-2 max-w-2xl text-slate-600">
         Управление темами, вопросами, материалами и просмотр результатов
-        учащихся — после подключения API.
+        учащихся.
       </p>
       <ul className="mt-8 grid gap-4 sm:grid-cols-2">
         <li>

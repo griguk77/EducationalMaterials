@@ -5,8 +5,7 @@ export function StudentHomePage() {
     <div>
       <h1 className="text-2xl font-semibold text-slate-900">Личный кабинет</h1>
       <p className="mt-2 max-w-2xl text-slate-600">
-        Здесь будет обзор: активные тесты, последние результаты и рекомендации
-        после подключения API.
+        Активные тесты, последние результаты и рекомендации.
       </p>
       <ul className="mt-8 grid gap-4 sm:grid-cols-2">
         <li>

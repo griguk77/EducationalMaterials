@@ -1,6 +1,7 @@
 package com.edumaterials.domain
 
 import com.edumaterials.api.dto.CompleteSessionResponse
+import com.edumaterials.api.dto.QuestionScoreResponse
 import com.edumaterials.api.dto.StartSessionRequest
 import com.edumaterials.api.dto.StartSessionResponse
 import com.edumaterials.api.dto.SubmitAnswerRequest
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import kotlin.math.abs
+import kotlin.math.min
 
 @Service
 class TestSessionService(
@@ -175,12 +177,18 @@ class TestSessionService(
             topic.hHigh,
         ).map { it.toResponse() }
         val label = recommendationService.masteryLabel(mastery, topic.hLow, topic.hHigh)
+        val answersByQuestionId = answers.associateBy { it.questionId }
+        val questionScores = questions.mapNotNull { q ->
+            val answer = answersByQuestionId[q.id] ?: return@mapNotNull null
+            toQuestionScore(q, answer)
+        }
         return CompleteSessionResponse(
             sessionId = session.id.toString(),
             topicId = session.topicId.toString(),
             masteryScore = mastery,
             masteryLabel = label,
             recommendations = materials,
+            questionScores = questionScores,
         )
     }
 
@@ -283,6 +291,44 @@ class TestSessionService(
             finished = session.finished,
             userId = user?.id?.toString(),
             userName = user?.name,
+        )
+    }
+
+    private fun toQuestionScore(
+        question: com.edumaterials.data.entity.Question,
+        answer: AnswerResult,
+    ): QuestionScoreResponse {
+        val totalAfter = answerResultRepository.countByQuestionId(question.id)
+        val correctAfter = answerResultRepository.countByQuestionIdAndIsCorrect(question.id, true)
+        val totalBefore = (totalAfter - 1).coerceAtLeast(0)
+        val correctBefore = (correctAfter - if (answer.isCorrect) 1 else 0).coerceAtLeast(0)
+
+        val timesBefore = answerResultRepository.findResponseTimeMsByQuestionId(question.id).toMutableList()
+        val idx = timesBefore.indexOf(answer.responseTimeMs)
+        if (idx >= 0) {
+            timesBefore.removeAt(idx)
+        }
+        val normative = MasteryScoring.median(timesBefore)
+            ?: (question.normativeTimeMs ?: appProperties.recommendation.defaultNormativeTimeMs).coerceAtLeast(1L)
+
+        val ti = answer.responseTimeMs.coerceAtLeast(1L)
+        val ai = answer.score
+        val di = MasteryScoring.difficultyComponent(
+            questionDifficulty = question.difficulty,
+            totalAttemptsBefore = totalBefore,
+            correctAttemptsBefore = correctBefore,
+        )
+        val vi = min(1.0, normative.toDouble() / ti.toDouble())
+
+        return QuestionScoreResponse(
+            questionId = question.id.toString(),
+            questionText = question.text,
+            ai = ai,
+            vi = vi,
+            di = di,
+            responseTimeMs = ti,
+            normativeTimeMs = normative,
+            partialScore = answer.partialScore,
         )
     }
 }

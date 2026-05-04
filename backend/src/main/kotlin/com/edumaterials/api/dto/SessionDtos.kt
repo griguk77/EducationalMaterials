@@ -30,6 +30,24 @@ data class CompleteSessionResponse(
     val masteryScore: Double,
     val masteryLabel: String,
     val recommendations: List<MaterialResponse>,
+    val questionScores: List<QuestionScoreResponse>,
+)
+
+data class QuestionScoreResponse(
+    val questionId: String,
+    val questionText: String,
+    /** a_i: оценка корректности ответа (0..1). */
+    val ai: Double,
+    /** v_i: скоростной коэффициент = min(1, T_i / t_i). */
+    val vi: Double,
+    /** d_i: сложность вопроса (по статистике или исходной difficulty). */
+    val di: Double,
+    /** t_i: фактическое время ответа пользователя (мс). */
+    val responseTimeMs: Long,
+    /** T_i: нормативное время (мс), использованное в расчёте v_i. */
+    val normativeTimeMs: Long,
+    /** q_i = (a_i + v_i + d_i) / 3 */
+    val partialScore: Double,
 )
 
 data class TestSessionSummaryResponse(

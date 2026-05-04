@@ -5,7 +5,8 @@ import kotlin.math.min
 
 /**
  * Реализация формул из НИР / DOCUMENTATION.md:
- * - d_i = 1 - C_i/N_i (по статистике ответов на вопрос; при отсутствии данных — оценка сложности из вопроса);
+ * - d_i = 1 - C_i/N_i (по статистике ответов на вопрос; при отсутствии данных или 100% верных ответов —
+ *   оценка сложности из вопроса);
  * - T_i = median(t_{i,k}) по накопленным ответам; при отсутствии — normativeTimeMs или дефолт;
  * - v_i = min(1, T_i/t_i);
  * - q_i = (a_i + v_i + d_i) / 3;
@@ -21,6 +22,18 @@ object MasteryScoring {
         } else {
             (sorted[mid - 1] + sorted[mid]) / 2
         }
+    }
+
+    fun difficultyComponent(
+        questionDifficulty: Double,
+        totalAttemptsBefore: Long,
+        correctAttemptsBefore: Long,
+    ): Double {
+        val baseDifficulty = questionDifficulty.coerceIn(0.0, 1.0)
+        if (totalAttemptsBefore <= 0) return baseDifficulty
+        val ratio = correctAttemptsBefore.toDouble() / totalAttemptsBefore.toDouble()
+        val derived = (1.0 - ratio).coerceIn(0.0, 1.0)
+        return if (derived <= 0.0) baseDifficulty else derived
     }
 
     /**
@@ -39,12 +52,11 @@ object MasteryScoring {
     ): Double {
         val ti = responseTimeMs.coerceAtLeast(1L)
 
-        val di = if (totalAttemptsBefore > 0) {
-            val ratio = correctAttemptsBefore.toDouble() / totalAttemptsBefore.toDouble()
-            (1.0 - ratio).coerceIn(0.0, 1.0)
-        } else {
-            question.difficulty.coerceIn(0.0, 1.0)
-        }
+        val di = difficultyComponent(
+            questionDifficulty = question.difficulty,
+            totalAttemptsBefore = totalAttemptsBefore,
+            correctAttemptsBefore = correctAttemptsBefore,
+        )
 
         val tiNormative = median(responseTimesMsBefore)
             ?: (question.normativeTimeMs ?: defaultNormativeTimeMs).coerceAtLeast(1L)

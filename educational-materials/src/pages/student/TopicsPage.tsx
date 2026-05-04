@@ -38,7 +38,7 @@ export function TopicsPage() {
     <div>
       <h1 className="text-2xl font-semibold text-slate-900">Тесты по темам</h1>
       <p className="mt-2 text-slate-600">
-        Тема соответствует «тесту»: после выбора создаётся сессия на сервере.
+        После выбора темы создаётся сессия теста.
       </p>
 
       {loading ? (

@@ -49,7 +49,7 @@ export function StudentMaterialsPage() {
         Учебные материалы
       </h1>
       <p className="mt-2 text-slate-600">
-        Материалы по темам (статья, видео и др.). Список с сервера.
+        Просмотр рекомендуемых материалов по темам.
       </p>
 
       {loading ? (

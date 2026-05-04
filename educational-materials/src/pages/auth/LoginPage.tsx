@@ -59,25 +59,12 @@ export function LoginPage() {
     }
   }
 
-  function fillDemo(which: 'student' | 'teacher') {
-    if (which === 'student') {
-      setLoginField('student')
-      setPassword('student123')
-    } else {
-      setLoginField('teacher')
-      setPassword('teacher123')
-    }
-  }
-
   return (
     <div className="flex min-h-dvh flex-col justify-center bg-slate-100 px-4 py-12">
       <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <h1 className="text-center text-2xl font-semibold text-slate-900">
           Вход
         </h1>
-        <p className="mt-2 text-center text-sm text-slate-500">
-          Учётные данные проверяются на сервере; выдаётся JWT.
-        </p>
 
         {error ? (
           <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -100,7 +87,6 @@ export function LoginPage() {
               value={loginField}
               onChange={(e) => setLoginField(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-              placeholder="student или teacher"
               required
             />
           </div>
@@ -119,7 +105,6 @@ export function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-              placeholder="••••••••"
               required
             />
           </div>
@@ -131,23 +116,6 @@ export function LoginPage() {
             {pending ? 'Вход…' : 'Войти'}
           </button>
         </form>
-
-        <div className="mt-6 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => fillDemo('student')}
-            className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Подставить: учащийся
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemo('teacher')}
-            className="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Подставить: преподаватель
-          </button>
-        </div>
 
         <p className="mt-6 text-center text-sm text-slate-600">
           Нет аккаунта?{' '}

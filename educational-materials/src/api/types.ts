@@ -61,6 +61,19 @@ export type CompleteSessionResponse = {
   masteryScore: number
   masteryLabel: string
   recommendations: MaterialDto[]
+  questionScores: QuestionScoreDto[]
+}
+
+export type QuestionScoreDto = {
+  questionId: string
+  questionText: string
+  ai: number
+  vi: number
+  di: number
+  responseTimeMs: number
+  normativeTimeMs: number
+  /** q_i = (a_i + v_i + d_i) / 3 */
+  partialScore: number
 }
 
 export type TestSessionSummaryDto = {

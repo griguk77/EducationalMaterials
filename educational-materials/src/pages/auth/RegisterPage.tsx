@@ -59,9 +59,6 @@ export function RegisterPage() {
         <h1 className="text-center text-2xl font-semibold text-slate-900">
           Регистрация
         </h1>
-        <p className="mt-2 text-center text-sm text-slate-500">
-          Пароль не короче 8 символов. Роль выбирается явно.
-        </p>
 
         {error ? (
           <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">

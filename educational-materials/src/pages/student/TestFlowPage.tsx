@@ -242,6 +242,34 @@ export function TestFlowPage() {
           </span>{' '}
           — {masteryLabelRu(result.masteryLabel)}
         </p>
+        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-sm font-medium text-slate-900">
+            Баллы по формуле за каждый вопрос
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Используется формула: q<sub>i</sub> = (a<sub>i</sub> + v<sub>i</sub> + d<sub>i</sub>) / 3
+          </p>
+          {result.questionScores.length === 0 ? (
+            <p className="mt-3 text-sm text-slate-500">Детализация по вопросам отсутствует.</p>
+          ) : (
+            <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+              {result.questionScores.map((s) => (
+                <li key={s.questionId}>
+                  <p className="font-medium text-slate-900">{s.questionText}</p>
+                  <p className="mt-0.5 text-xs text-slate-600">
+                    a_i = {s.ai.toFixed(3)}, v_i = min(1, T_i / t_i) = min(1,{' '}
+                    {s.normativeTimeMs} / {s.responseTimeMs}) = {s.vi.toFixed(3)}, d_i ={' '}
+                    {s.di.toFixed(3)}
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    q_i = (a_i + v_i + d_i) / 3 = ({s.ai.toFixed(3)} + {s.vi.toFixed(3)} +{' '}
+                    {s.di.toFixed(3)}) / 3 = {s.partialScore.toFixed(3)}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
 
         <h2 className="mt-8 text-lg font-medium text-slate-900">
           Рекомендованные материалы
